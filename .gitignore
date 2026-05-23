@@ -1,0 +1,10 @@
+.DS_Store
+.next/
+.npm-cache/
+node_modules/
+out/
+*.log
+*.tsbuildinfo
+.env*
+!.env.example
+claudedesignskills/
