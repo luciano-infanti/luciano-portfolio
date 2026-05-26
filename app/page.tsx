@@ -1,23 +1,10 @@
-import { ProjectSection } from "@/components/portfolio";
+import { BackToTop } from "@/components/back-to-top";
+import { EmailLink } from "@/components/email-link";
+import { FlatStream } from "@/components/flat-stream";
 import { SiteHeader } from "@/components/site-header";
-// To revert to the classic nav: swap "-v2" off the end of this import.
-import { WorkNavigator } from "@/components/work-navigator-v2";
 import { profile, projects } from "@/lib/work";
 
 export default function Home() {
-  const workNavProjects = projects.map(({ media, name, slug, year }) => {
-    const previewImages = media
-      .filter((item) => item.kind === "image")
-      .map((item) => ({ alt: item.alt, src: item.src }));
-
-    return {
-      name,
-      previewImages,
-      slug,
-      year,
-    };
-  });
-
   return (
     <main>
       <section className="hero" aria-label="Luciano Infanti portfolio introduction">
@@ -25,17 +12,36 @@ export default function Home() {
         <p className="intro-copy">{profile.bio}</p>
       </section>
 
-      <div className="work-list">
-        {projects.map((project) => (
-          <ProjectSection key={project.slug} project={project} />
-        ))}
-      </div>
+      <FlatStream projects={projects} />
 
       <footer className="site-footer">
-        <p>Thanks for exploring this far.</p>
+        <p className="site-footer-message">Thanks for exploring this far.</p>
+
+        <nav aria-label="Contact" className="site-footer-links">
+          <a
+            href="https://savee.com/lucianoinfanti/"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Savee
+          </a>
+          <a
+            href="https://www.linkedin.com/in/luciano-infanti/"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            LinkedIn
+          </a>
+          <EmailLink />
+        </nav>
+
+        <div className="site-footer-meta">
+          <p>São Paulo, Brazil</p>
+          <p>© 2026</p>
+        </div>
       </footer>
 
-      <WorkNavigator projects={workNavProjects} />
+      <BackToTop />
     </main>
   );
 }
