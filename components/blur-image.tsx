@@ -10,9 +10,9 @@ const blurSvg = `
   <rect width="16" height="12" fill="#e4e4e4" opacity=".65" filter="url(#b)"/>
 </svg>`;
 
-const blurDataUrl = `data:image/svg+xml,${encodeURIComponent(blurSvg)}`;
+const fallbackBlur = `data:image/svg+xml,${encodeURIComponent(blurSvg)}`;
 
-export function BlurImage({ className = "", ...props }: ImageProps) {
+export function BlurImage({ className = "", blurDataURL, ...props }: ImageProps) {
   const [inView, setInView] = useState(false);
   const ref = useRef<HTMLImageElement>(null);
 
@@ -50,7 +50,7 @@ export function BlurImage({ className = "", ...props }: ImageProps) {
     <Image
       {...props}
       ref={ref}
-      blurDataURL={blurDataUrl}
+      blurDataURL={blurDataURL ?? fallbackBlur}
       className={`${className} ${inView ? "is-visible" : ""}`}
       placeholder="blur"
     />

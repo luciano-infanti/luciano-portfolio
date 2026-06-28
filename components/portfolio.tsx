@@ -86,10 +86,11 @@ function MediaFrame({
       {item.kind === "image" ? (
         <BlurImage
           alt={item.alt}
+          blurDataURL={item.blurDataURL}
           className="media-image"
           fill
           priority={priority}
-          quality={95}
+          quality={90}
           sizes={sizes}
           src={item.src}
         />

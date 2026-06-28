@@ -2,6 +2,7 @@ import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import {
   formatFilename,
+  getBlurDataURL,
   getImageDimensions,
   imageExtensions,
   isSupportedMedia,
@@ -26,14 +27,16 @@ function getPlaygroundItems(): WorkMedia[] {
       const extension = path.extname(filename).toLowerCase();
       const filePath = path.join(playgroundDirectory, filename);
       const dimensions = imageExtensions.has(extension) ? getImageDimensions(filePath) : null;
+      const src = `/playground/${filename}`;
 
       return {
         kind: imageExtensions.has(extension) ? "image" : "video",
-        src: `/playground/${filename}`,
+        src,
         filename,
         width: dimensions?.width ?? 16,
         height: dimensions?.height ?? 9,
         alt: `Playground ${formatFilename(filename)}`,
+        blurDataURL: getBlurDataURL(src),
       };
     });
 }

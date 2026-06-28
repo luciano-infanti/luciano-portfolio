@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import {
   formatFilename,
+  getBlurDataURL,
   getImageDimensions,
   imageExtensions,
   isSupportedMedia,
@@ -14,6 +15,7 @@ export type WorkMedia = {
   width: number;
   height: number;
   alt: string;
+  blurDataURL?: string;
 };
 
 export type Project = {
@@ -122,14 +124,16 @@ function getProjectMedia(slug: string, projectDirectory: string, projectName: st
       const extension = path.extname(filename).toLowerCase();
       const filePath = path.join(projectDirectory, filename);
       const dimensions = imageExtensions.has(extension) ? getImageDimensions(filePath) : null;
+      const src = `/works/${slug}/${filename}`;
 
       return {
         kind: imageExtensions.has(extension) ? "image" : "video",
-        src: `/works/${slug}/${filename}`,
+        src,
         filename,
         width: dimensions?.width ?? 16,
         height: dimensions?.height ?? 9,
         alt: `${projectName} ${formatFilename(filename)}`,
+        blurDataURL: getBlurDataURL(src),
       };
     });
 }

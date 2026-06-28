@@ -1,8 +1,19 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 export const imageExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".avif", ".gif"]);
 export const videoExtensions = new Set([".mp4", ".webm", ".mov"]);
+
+// Build-time blur placeholders (LQIP) keyed by public src, produced by
+// scripts/generate-blur.mjs. Loaded once. Falls back to undefined if missing.
+const blurMapPath = path.join(process.cwd(), "lib", "media-blur.json");
+const blurMap: Record<string, { b: string }> = existsSync(blurMapPath)
+  ? JSON.parse(readFileSync(blurMapPath, "utf8"))
+  : {};
+
+export function getBlurDataURL(src: string) {
+  return blurMap[src]?.b;
+}
 
 export function isSupportedMedia(filename: string) {
   if (filename.startsWith(".") || filename === "project.json") {
