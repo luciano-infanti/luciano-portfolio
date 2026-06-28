@@ -19,6 +19,7 @@ export function SiteHeader({ current }: SiteHeaderProps) {
           </a>
         </p>
       </div>
+      {/* Section links (Work / Playground) hidden for now — restore to re-enable.
       <nav aria-label="Sections" className="playground-label">
         {current === "work" ? <span>Work</span> : <Link href="/">Work</Link>}
         {"\n"}
@@ -28,6 +29,7 @@ export function SiteHeader({ current }: SiteHeaderProps) {
           <Link href="/playground">Playground</Link>
         )}
       </nav>
+      */}
       <nav aria-label="Primary links" className="social-links">
         <a href="https://savee.com/lucianoinfanti/" rel="noopener noreferrer" target="_blank">
           Savee

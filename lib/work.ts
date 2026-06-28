@@ -51,7 +51,7 @@ function getProjects() {
     .filter((entry) => !entry.startsWith("."))
     .map((entry) => loadProject(entry))
     .filter((project): project is Project => project !== null)
-    .sort((a, b) => getProjectYear(b.year) - getProjectYear(a.year) || a.order - b.order || a.slug.localeCompare(b.slug));
+    .sort((a, b) => a.order - b.order || getProjectYear(b.year) - getProjectYear(a.year) || a.slug.localeCompare(b.slug));
 }
 
 function loadProject(slug: string): Project | null {

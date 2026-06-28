@@ -9,6 +9,12 @@ export function isSupportedMedia(filename: string) {
     return false;
   }
 
+  // Hidden from display: any file whose name starts with "no" (e.g. no-01-torc.png).
+  // Rename it back (drop the "no" prefix) to show it again.
+  if (/^no[-_]/i.test(filename)) {
+    return false;
+  }
+
   const extension = path.extname(filename).toLowerCase();
   return imageExtensions.has(extension) || videoExtensions.has(extension);
 }
