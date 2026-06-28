@@ -1,4 +1,6 @@
-import type { CSSProperties } from "react";
+"use client";
+
+import { type CSSProperties, useEffect, useState } from "react";
 import { BlurImage } from "@/components/blur-image";
 import type { Project, WorkMedia } from "@/lib/work";
 
@@ -44,37 +46,123 @@ export function ProjectSection({ project }: { project: Project }) {
 
 export function MediaStack({ media }: { media: WorkMedia[] }) {
   const rows = getMediaRows(media);
+  const loadedCount = useProgressiveLoad(media.length);
+
+  let cursor = 0;
 
   return (
     <div className="media-stack">
-      {rows.map((row, index) => (
-        <MediaRowView key={index} priority={index === 0} row={row} />
-      ))}
+      {rows.map((row, index) => {
+        const startIndex = cursor;
+        cursor += row.type === "grid" ? row.items.length : 1;
+
+        return (
+          <MediaRowView
+            key={index}
+            loadedCount={loadedCount}
+            priority={index === 0}
+            row={row}
+            startIndex={startIndex}
+          />
+        );
+      })}
     </div>
   );
 }
 
-function MediaRowView({ row, priority }: { row: MediaRow; priority: boolean }) {
+// Progressively warm images top-to-bottom AFTER the page has loaded, so they're
+// already fetched by the time the user scrolls to them. Gentle by design: one
+// image at a time, during browser idle, and skipped entirely on data-saver or
+// slow (2g) connections so we never punish constrained users.
+function useProgressiveLoad(total: number) {
+  const [loadedCount, setLoadedCount] = useState(1); // first image is priority anyway
+
+  useEffect(() => {
+    const connection = (navigator as { connection?: { saveData?: boolean; effectiveType?: string } })
+      .connection;
+    if (connection?.saveData || /2g/.test(connection?.effectiveType ?? "")) {
+      return;
+    }
+
+    let cancelled = false;
+    let index = 1;
+
+    const advance = () => {
+      if (cancelled || index >= total) return;
+      index += 1;
+      setLoadedCount(index);
+      schedule();
+    };
+
+    const schedule = () => {
+      const idle =
+        window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 200));
+      idle(() => window.setTimeout(advance, 120));
+    };
+
+    const start = () => schedule();
+
+    if (document.readyState === "complete") {
+      start();
+    } else {
+      window.addEventListener("load", start, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("load", start);
+    };
+  }, [total]);
+
+  return loadedCount;
+}
+
+function MediaRowView({
+  row,
+  priority,
+  startIndex,
+  loadedCount,
+}: {
+  row: MediaRow;
+  priority: boolean;
+  startIndex: number;
+  loadedCount: number;
+}) {
   if (row.type === "grid") {
     return (
       <div className={row.items.length === 1 ? "media-grid media-grid-single" : "media-grid"}>
         {row.items.map((item, index) => (
-          <MediaFrame item={item} key={item.src} priority={priority && index === 0} sizes={halfBleedSizes} />
+          <MediaFrame
+            eager={startIndex + index < loadedCount}
+            item={item}
+            key={item.src}
+            priority={priority && index === 0}
+            sizes={halfBleedSizes}
+          />
         ))}
       </div>
     );
   }
 
-  return <MediaFrame item={row.item} priority={priority} sizes={fullBleedSizes} />;
+  return (
+    <MediaFrame
+      eager={startIndex < loadedCount}
+      item={row.item}
+      priority={priority}
+      sizes={fullBleedSizes}
+    />
+  );
 }
 
 function MediaFrame({
   item,
   priority = false,
+  eager = false,
   sizes,
 }: {
   item: WorkMedia;
   priority?: boolean;
+  eager?: boolean;
   sizes: string;
 }) {
   const style = {
@@ -89,6 +177,9 @@ function MediaFrame({
           blurDataURL={item.blurDataURL}
           className="media-image"
           fill
+          // Priority loads immediately; otherwise the progressive cursor flips
+          // images to eager top-to-bottom, falling back to native lazy until then.
+          loading={priority ? undefined : eager ? "eager" : "lazy"}
           priority={priority}
           quality={90}
           sizes={sizes}
